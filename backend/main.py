@@ -57,15 +57,21 @@ def shorten_url(request: URLRequest, db: Session = Depends(get_db)):
 # ---------------------------
 @app.get("/{short_code}")
 def redirect_url(short_code: str, db: Session = Depends(get_db)):
+    # normalize input (VERY IMPORTANT)
+    short_code = short_code.strip()
+
+    # fetch from DB
     url = db.query(URL).filter(URL.short_code == short_code).first()
 
     if not url:
         raise HTTPException(status_code=404, detail="URL not found")
 
-    url.click_count += 1
+    # safe increment
+    url.click_count = (url.click_count or 0) + 1
     db.commit()
 
-    return RedirectResponse(url.original_url)
+    # proper redirect
+    return RedirectResponse(url=url.original_url, status_code=307)
 
 
 # ---------------------------
