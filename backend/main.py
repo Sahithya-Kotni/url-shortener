@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
@@ -8,6 +10,9 @@ from schemas import URLRequest
 from utils import generate_short_code
 
 app = FastAPI()
+
+# Base URL (Render or local fallback)
+BASE_URL = os.getenv("BASE_URL", "http://127.0.0.1:8000")
 
 # Create tables on startup
 Base.metadata.create_all(bind=engine)
@@ -43,7 +48,7 @@ def shorten_url(request: URLRequest, db: Session = Depends(get_db)):
     return {
         "original_url": new_url.original_url,
         "short_code": short_code,
-        "short_url": f"http://127.0.0.1:8000/{short_code}"
+        "short_url": f"{BASE_URL}/{short_code}"
     }
 
 
